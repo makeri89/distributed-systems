@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.11
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  client_1:
+    build:
+      context: ./nodes/Client_1
+    container_name: client_1
+    environment:
+      - NODE_NAME=NODE1
+      - MQTT_BROKER=mqtt://mosquitto
+      - MQTT_PORT=1883
+      - PORT=3001
+      - MQTT_TOPIC_TO_PUBLISH=temperature
+      - MQTT_TOPIC_TO_LISTEN=temperature
+      - TEMPERATURE_INTERVAL=5000
+    depends_on:
+      - mosquitto
+
+  client_2:
+    build:
+      context: ./nodes/Client_2
+    container_name: client_2
+    environment:
+      - NODE_NAME=NODE2
+      - MQTT_BROKER=mqtt://mosquitto
+      - MQTT_PORT=1883
+      - PORT=3002
+      - MQTT_TOPIC_TO_PUBLISH=temperature
+      - MQTT_TOPIC_TO_LISTEN=temperature
+      - TEMPERATURE_INTERVAL=8000
+    depends_on:
+      - mosquitto
+
+  client_3:
+    build:
+      context: ./nodes/Client_3
+    container_name: client_3
+    environment:
+      - NODE_NAME=NODE3
+      - MQTT_BROKER=mqtt://mosquitto
+      - MQTT_PORT=1883
+      - PORT=3003
+      - MQTT_TOPIC_TO_PUBLISH=temperature
+      - TEMPERATURE_INTERVAL=10000
+    depends_on:
+      - mosquitto
