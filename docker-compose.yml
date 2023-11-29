@@ -52,3 +52,33 @@ services:
       - TEMPERATURE_INTERVAL=10000
     depends_on:
       - mosquitto
+  
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - ./nodes/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - mosquitto
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdbv2:/root/.influxdbv2
+    
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - influxdb
+
+volumes:
+  grafana-storage:
+  influxdbv2:
