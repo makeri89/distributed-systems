@@ -88,6 +88,7 @@ services:
     networks:
       services_network:
         ipv4_address: 192.168.15.101
+      ui_network:
 
   grafana:
     image: grafana/grafana:latest
@@ -99,8 +100,8 @@ services:
     depends_on:
       - influxdb
     networks:
-      services_network:
-        ipv4_address: 192.168.15.102
+      ui_network:
+        ipv4_address: 192.168.16.100
 
 networks:
   network_100:
@@ -123,6 +124,11 @@ networks:
     ipam:
       config:
         - subnet: 192.168.15.0/24
+  ui_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.16.0/24
 
 volumes:
   grafana-storage:
