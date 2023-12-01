@@ -8,6 +8,11 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      network_100:
+      network_200:
+      network_222:
+      services_network:
 
   client_1:
     build:
@@ -23,6 +28,9 @@ services:
       - TEMPERATURE_INTERVAL=5000
     depends_on:
       - mosquitto
+    networks:
+      network_100:
+        ipv4_address: 192.168.100.100
 
   client_2:
     build:
@@ -38,6 +46,9 @@ services:
       - TEMPERATURE_INTERVAL=8000
     depends_on:
       - mosquitto
+    networks:
+      network_200:
+        ipv4_address: 192.168.200.200
 
   client_3:
     build:
@@ -52,6 +63,9 @@ services:
       - TEMPERATURE_INTERVAL=10000
     depends_on:
       - mosquitto
+    networks:
+      network_222:
+        ipv4_address: 192.168.222.222
   
   telegraf:
     image: telegraf:latest
@@ -60,6 +74,9 @@ services:
       - ./nodes/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     depends_on:
       - mosquitto
+    networks:
+      services_network:
+        ipv4_address: 192.168.15.100
 
   influxdb:
     image: influxdb:latest
@@ -68,7 +85,10 @@ services:
       - "8086:8086"
     volumes:
       - influxdbv2:/root/.influxdbv2
-    
+    networks:
+      services_network:
+        ipv4_address: 192.168.15.101
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -78,6 +98,31 @@ services:
       - grafana-storage:/var/lib/grafana
     depends_on:
       - influxdb
+    networks:
+      services_network:
+        ipv4_address: 192.168.15.102
+
+networks:
+  network_100:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+  network_200:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.200.0/24
+  network_222:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.222.0/24
+  services_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.15.0/24
 
 volumes:
   grafana-storage:
