@@ -25,6 +25,7 @@ services:
       - PORT=3001
       - MQTT_TOPIC_TO_PUBLISH=temperature
       - MQTT_TOPIC_TO_LISTEN=temperature
+      - ERROR_CHANNEL_TO_LISTEN=error-channel
       - TEMPERATURE_INTERVAL=5000
     depends_on:
       - mosquitto
@@ -43,6 +44,7 @@ services:
       - PORT=3002
       - MQTT_TOPIC_TO_PUBLISH=temperature
       - MQTT_TOPIC_TO_LISTEN=temperature
+      - ERROR_CHANNEL_TO_LISTEN=error-channel
       - TEMPERATURE_INTERVAL=8000
     depends_on:
       - mosquitto
