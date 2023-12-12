@@ -30,8 +30,8 @@ class MqttHandler {
       this.startPublishingTemperatures();
     });
 
-    this.mqttClient.subscribe(this.topicToListen, { qos: 0 });
-    this.mqttClient.subscribe(this.errorChannel, { qos: 0 });
+    this.mqttClient.subscribe(this.topicToListen, { qos: 2 });
+    this.mqttClient.subscribe(this.errorChannel, { qos: 2 });
 
     // This triggers when something is published to the "topicToListen" queue
     this.mqttClient.on("message", (topic, message) => {
