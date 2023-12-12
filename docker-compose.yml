@@ -16,7 +16,7 @@ services:
 
   client_1:
     build:
-      context: ./nodes/Client_1
+      context: ./nodes/client
     container_name: client_1
     environment:
       - NODE_NAME=NODE1
@@ -24,8 +24,7 @@ services:
       - MQTT_PORT=1883
       - PORT=3001
       - MQTT_TOPIC_TO_PUBLISH=temperature
-      - MQTT_TOPIC_TO_LISTEN=temperature
-      - ERROR_CHANNEL_TO_LISTEN=error-channel
+      - MQTT_TOPIC_TO_LISTEN=temperature error
       - TEMPERATURE_INTERVAL=5000
     depends_on:
       - mosquitto
@@ -35,7 +34,7 @@ services:
 
   client_2:
     build:
-      context: ./nodes/Client_2
+      context: ./nodes/client
     container_name: client_2
     environment:
       - NODE_NAME=NODE2
@@ -43,8 +42,7 @@ services:
       - MQTT_PORT=1883
       - PORT=3002
       - MQTT_TOPIC_TO_PUBLISH=temperature
-      - MQTT_TOPIC_TO_LISTEN=temperature
-      - ERROR_CHANNEL_TO_LISTEN=error-channel
+      - MQTT_TOPIC_TO_LISTEN=temperature error
       - TEMPERATURE_INTERVAL=8000
     depends_on:
       - mosquitto
@@ -54,7 +52,7 @@ services:
 
   client_3:
     build:
-      context: ./nodes/Client_3
+      context: ./nodes/client
     container_name: client_3
     environment:
       - NODE_NAME=NODE3
@@ -63,11 +61,27 @@ services:
       - PORT=3003
       - MQTT_TOPIC_TO_PUBLISH=temperature
       - TEMPERATURE_INTERVAL=10000
+      - PUBLISH_ONLY=true
     depends_on:
       - mosquitto
     networks:
       network_222:
         ipv4_address: 192.168.222.222
+  
+  flux_server:
+    build:
+      context: ./nodes/flux
+    container_name: flux_server
+    environment:
+      - INFLUX_URL=http://192.168.15.101:8086
+      - INFLUX_TOKEN=IAP5SweAewT_BzMCBShwzk8qp0LfcmQBoOMKmjZ3swab1bsUnC7lUUfe0VJSB1KQxU5Y-Ei_LPXUCzXhdHJGXw==
+      - INFLUX_ORG=distributed systems
+      - MQTT_BROKER_URL=mqtt://mosquitto:1883
+    depends_on:
+      - influxdb
+    networks:
+      services_network:
+        ipv4_address: 192.168.15.102
   
   telegraf:
     image: telegraf:latest
