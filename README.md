@@ -31,7 +31,7 @@ protocol.
 This design ensures efficient, real-time data communication and management across various components of the
 system.
 
-![distributed drawio](./distributed-systems.drawio.png)
+![distributed drawio](./distributed-systems.png)
 
 #### Components and Workflow
 
