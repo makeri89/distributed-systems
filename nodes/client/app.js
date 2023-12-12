@@ -12,15 +12,23 @@ const {
   MQTT_PORT,
   PORT,
   MQTT_TOPIC_TO_PUBLISH,
+  MQTT_TOPIC_TO_LISTEN,
   TEMPERATURE_INTERVAL,
+  ERROR_CHANNEL_TO_LISTEN,
+  PUBLISH_ONLY
 } = process.env;
+
+const topicToListen = MQTT_TOPIC_TO_LISTEN || '';
 
 const mqttClient = new MqttHandler(
   NODE_NAME,
   MQTT_BROKER,
-  parseInt(MQTT_PORT, 10),
+  parseInt(MQTT_PORT, 1883),
   MQTT_TOPIC_TO_PUBLISH,
-  parseInt(TEMPERATURE_INTERVAL, 10)
+  topicToListen.split(' '),
+  parseInt(TEMPERATURE_INTERVAL, 10),
+  ERROR_CHANNEL_TO_LISTEN,
+  Boolean(PUBLISH_ONLY)
 );
 
 app.use(bodyParser.json());
