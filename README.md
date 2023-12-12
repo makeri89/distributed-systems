@@ -93,9 +93,9 @@ docker compose up -d
 ```
 
 Now go to [http://localhost:3000](http://localhost:3000) and set up the Grafana instance (default login is admin:admin).
-Then go to set up a data source with the following values
+Then go to set up a InfluxDB data source with the following values
 
-#### Query language
+### Query language
 
 Flux
 
