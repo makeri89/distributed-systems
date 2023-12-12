@@ -20,6 +20,7 @@ class MqttHandler {
     this.errorChannel = errorChannel;
     this.temperatureIntervalId = null;
     this.isSendingPaused = false;
+    this.currentTemperature = 50;
   }
 
   async connect() {
@@ -79,10 +80,17 @@ class MqttHandler {
   startPublishingTemperatures() {
     this.temperatureIntervalId = setInterval(() => {
       if (!this.isSendingPaused) {
-        // TODO: think values thru
+        const randomIncrease = Math.floor(Math.random() * 5) + 3; // Generates a number between 3 and 7
+
+        if (Math.random() < 0.75) {
+          this.currentTemperature += randomIncrease;
+        } else {
+          this.currentTemperature -= randomIncrease;
+        }
+
         const messageObject = {
           sender: this.nodeName,
-          temperature: Math.floor(Math.random() * 120),
+          temperature: this.currentTemperature,
           timestamp: new Date().toISOString(),
         };
 
@@ -94,6 +102,7 @@ class MqttHandler {
 
   pauseSending() {
     this.isSendingPaused = true;
+    this.currentTemperature = 50;
     clearInterval(this.temperatureIntervalId);
     const messageObject = {
       sender: this.nodeName,
