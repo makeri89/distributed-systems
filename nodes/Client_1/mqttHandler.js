@@ -7,7 +7,8 @@ class MqttHandler {
     port,
     topicToPublish,
     topicToListen,
-    temperatureIntervalInMilliseconds
+    temperatureIntervalInMilliseconds,
+    errorChannel,
   ) {
     this.mqttClient = null;
     this.nodeName = nodeName;
@@ -16,6 +17,9 @@ class MqttHandler {
     this.topicToPublish = topicToPublish;
     this.topicToListen = topicToListen;
     this.temperatureIntervalInMilliseconds = temperatureIntervalInMilliseconds;
+    this.errorChannel = errorChannel;
+    this.temperatureIntervalId = null;
+    this.isSendingPaused = false;
   }
 
   async connect() {
@@ -27,26 +31,43 @@ class MqttHandler {
     });
 
     this.mqttClient.subscribe(this.topicToListen, { qos: 0 });
+    this.mqttClient.subscribe(this.errorChannel, { qos: 0 });
 
     // This triggers when something is published to the "topicToListen" queue
     this.mqttClient.on("message", (topic, message) => {
-      try {
+      if (topic === this.errorChannel) {
         const receivedObject = JSON.parse(message.toString());
         console.log(
-          `TOPIC: "${topic}". FROM: "${receivedObject.sender}" SENT: temp: ${receivedObject.temperature}, timestamp ${receivedObject.timestamp}"`
+          `TOPIC: "${topic}". FROM: "${receivedObject.sender}", ERROR MESSAGE: "${receivedObject.errorMessage}", timestamp ${receivedObject.timestamp}"`
         );
-      } catch (error) {
-        console.error("Error parsing JSON:", error);
+      } else {
+        try {
+          const receivedObject = JSON.parse(message.toString());
+          console.log(
+            `TOPIC: "${topic}". FROM: "${receivedObject.sender}" SENT: temp: ${receivedObject.temperature}, timestamp ${receivedObject.timestamp}"`
+          );
+
+          // Check if the received temperature is higher than 100
+          if (receivedObject.temperature > 100) {
+            console.log(
+              "Temperature is higher than 100. Pausing for 10 seconds."
+            );
+            this.pauseSending();
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
       }
     });
 
     this.mqttClient.on("error", (err) => {
       console.error(err);
-      this.mqttClient.end();
+      this.pauseSending();
     });
 
     this.mqttClient.on("close", () => {
       console.log(`MQTT client disconnected`);
+      this.pauseSending();
     });
   }
 
@@ -56,18 +77,38 @@ class MqttHandler {
   }
 
   startPublishingTemperatures() {
-    setInterval(() => {
-      // TODO: think values thru
-      const messageObject = {
-        sender: this.nodeName,
-        temperature: Math.floor(Math.random() * 100),
-        humidity: Math.floor(Math.random() * 50),
-        timestamp: new Date().toISOString(),
-      };
+    this.temperatureIntervalId = setInterval(() => {
+      if (!this.isSendingPaused) {
+        // TODO: think values thru
+        const messageObject = {
+          sender: this.nodeName,
+          temperature: Math.floor(Math.random() * 120),
+          timestamp: new Date().toISOString(),
+        };
 
-      const messageString = JSON.stringify(messageObject);
-      this.sendMessage(this.topicToPublish, messageString);
+        const messageString = JSON.stringify(messageObject);
+        this.sendMessage(this.topicToPublish, messageString);
+      }
     }, this.temperatureIntervalInMilliseconds);
+  }
+
+  pauseSending() {
+    this.isSendingPaused = true;
+    clearInterval(this.temperatureIntervalId);
+    const messageObject = {
+      sender: this.nodeName,
+      errorMessage: "Cooling down... Returning in 10 seconds.",
+      timestamp: new Date().toISOString(),
+    };
+    const messageString = JSON.stringify(messageObject);
+    this.sendMessage(this.errorChannel, messageString);
+
+    // Resume sending after 10 seconds
+    setTimeout(() => {
+      console.log("Resuming temperature sending.");
+      this.isSendingPaused = false;
+      this.startPublishingTemperatures();
+    }, 10000);
   }
 }
 
